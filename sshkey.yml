@@ -1,0 +1,14 @@
+---
+- hosts:
+  tasks:
+    - shell: rm -rf /tmp/*.authorized_keys
+
+    - name: create user
+      user: name=ykrest
+
+    - name: fetch key from github
+      delegate_to: 127.0.0.1
+      get_url: url=https://raw.githubusercontent.com/ykrest/ansible/master/publickey.txt dest=/tmp/ykrest.authorized_keys
+
+    - name: setup authorized_key
+      authorized_key: user=ykrest key="{{ lookup('file', '/tmp/ykrest.authorized_keys') }}"
