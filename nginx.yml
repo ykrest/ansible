@@ -1,36 +1,52 @@
-- name: nginx install
-  package: name=nginx state=present
+---
+- hosts: newhost
+  tasks:
+  - name: add nginx repo
+    yum: name="http://nginx.org/packages/centos/{{ansible_distribution_major_version}}/noarch/RPMS/nginx-release-centos-{{ansible_distribution_major_version}}-0.el{{ansible_distribution_major_version}}.ngx.noarch.rpm"
+    
+  - name: nginx install
+    yum: name=nginx state=present enablerepo=nginx
 
-- name: nginx start
-  service: nginx
-    name: nginx
-    state: started
-    enabled: yes
+  - name: nginx start
+    service: name=nginx state=started enabled=yes
 
-- name: nginx config
-  template:
-    src: nginx.conf.j2
-    dest: "/etc/nginx/nginx.conf"
-    owner: root
-    group: root
-    mode: 0644
-  notify: 
-    - reload nginx
+  - name: create www directory
+    file:
+      path: /var/www/html
+      state: directory
+      mode: 0755
+      recurse: yes
+ 
+  - name: nginx config
+    template:
+      src: nginx.conf.j2
+      dest: "/etc/nginx/nginx.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify: 
+      - reload nginx
 
-- name: basic website config
-  template:
-    src: testweb.conf.j2
-    dest: "/etc/nginx/conf.d/testweb.conf"
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - reload nginx
+  - name: basic website config
+    template:
+      src: testweb.conf.j2
+      dest: "/etc/nginx/conf.d/testweb.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - reload nginx
+  
+  - name: default web page
+    template:
+      src: index.html.j2
+      dest: "/var/www/html"
+      owner: root
+      group: root
+      mode: 0644
 
-- name: default web page
-  template:
-    src: index.html.j2
-    dest: "/var/www/html"
-    owner: root
-    group: root
-    mode: 0644
+  handlers:
+    - name: reload nginx
+      service:
+        name: nginx
+        state: reloaded
