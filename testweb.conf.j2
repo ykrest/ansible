@@ -1,11 +1,21 @@
 server {
 	listen 80;
 	server_name testweb.com;
-	root /var/www/html;
-
-	location / {
-		index index.html index.cgi index.pl index.php index.xhtml index.htm index.shtml;
-	}
-
-
+	return 301 https://$host$request_uri;
 }
+server {
+        listen 80;
+        server_name www.testweb.com;
+        return 301 https://$host$request_uri;
+}
+server {
+	listen 443 ssl;
+	server_name	testweb.com;
+	root /var/www/html;
+	ssl_certificate		certificates/testweb.com.cert;
+	ssl_certificate_key	certificates/testweb.com.key;
+        location / {
+                index index.html index.cgi index.pl index.php index.xhtml index.htm index.shtml;
+        }
+}
+
